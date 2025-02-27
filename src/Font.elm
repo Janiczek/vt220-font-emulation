@@ -2,13 +2,12 @@ module Font exposing (CharData, CharMap, Font, fromPbm, view)
 
 import Dict exposing (Dict)
 import Playground as P
-import Set exposing (Set)
 
 
 {-| Each character value is a set of "lit" (x,y) coordinates
 -}
 type alias CharData =
-    Set ( Int, Int )
+    List ( Int, Int )
 
 
 type alias CharMap =
@@ -96,24 +95,23 @@ fromPbm pbm =
                 else
                     Nothing
             )
-        |> Set.fromList
 
 
-view : P.Color -> Font -> Char -> List P.Shape
+view : P.Color -> Font -> Char -> P.Shape
 view color font c =
     case Dict.get c font.charMap of
         Nothing ->
-            let
-                _ =
-                    Debug.log "char not in font's char map" c
-            in
-            []
+            --let
+            --    _ =
+            --        Debug.log "char not in font's char map" c
+            --in
+            P.group []
 
         Just charData ->
             charData
-                |> Set.toList
                 |> List.map
                     (\( x, y ) ->
                         P.rectangle color 1 1
                             |> P.move (toFloat x) (toFloat -y)
                     )
+                |> P.group
