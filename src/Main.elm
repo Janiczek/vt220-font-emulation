@@ -42,18 +42,18 @@ chars =
 main : Html msg
 main =
     Layout.grid { gap = 8 }
-        [ section Font.VT220.font.singleWidthRaw "0: original (as in ROM)"
-        , section Font.VT220.font.singleWidthExtended "1: right-extended"
-        , section Font.VT220.font.singleWidthDotStretched "2: dot-stretched"
-        , section (Font.VT220.font.singleWidthRaw |> Font.withScanlines) "0S: original with scanlines"
-        , section (Font.VT220.font.singleWidthExtended |> Font.withScanlines) "1S: right-extended with scanlines"
-        , section (Font.VT220.font.singleWidthDotStretched |> Font.withScanlines) "2S: dot-stretched with scanlines"
-        , section Font.VT220.font.doubleWidthRaw "0D: original (as in ROM)"
-        , section Font.VT220.font.doubleWidthExtended "1D: right-extended"
-        , section Font.VT220.font.doubleWidthDotStretched "2D: dot-stretched"
-        , section (Font.VT220.font.doubleWidthRaw |> Font.withScanlines) "0DS: original with scanlines"
-        , section (Font.VT220.font.doubleWidthExtended |> Font.withScanlines) "1DS: right-extended with scanlines"
-        , section (Font.VT220.font.doubleWidthDotStretched |> Font.withScanlines) "2DS: dot-stretched with scanlines"
+        [ section Font.VT220.font.singleWidthRaw "original (as in ROM)"
+        , section Font.VT220.font.singleWidthExtended "right-extended"
+        , section Font.VT220.font.singleWidthDotStretched "dot-stretched"
+        , section (Font.VT220.font.singleWidthRaw |> Font.withScanlines) "original with scanlines"
+        , section (Font.VT220.font.singleWidthExtended |> Font.withScanlines) "right-extended with scanlines"
+        , section (Font.VT220.font.singleWidthDotStretched |> Font.withScanlines) "dot-stretched with scanlines"
+        , section Font.VT220.font.doubleWidthRaw "double-width"
+        , section Font.VT220.font.doubleWidthExtended "double-width right-extended"
+        , section Font.VT220.font.doubleWidthDotStretched "double-width dot-stretched"
+        , section (Font.VT220.font.doubleWidthRaw |> Font.withScanlines) "double-width with scanlines"
+        , section (Font.VT220.font.doubleWidthExtended |> Font.withScanlines) "double-width right-extended with scanlines"
+        , section (Font.VT220.font.doubleWidthDotStretched |> Font.withScanlines) "double-width dot-stretched with scanlines"
         ]
 
 
