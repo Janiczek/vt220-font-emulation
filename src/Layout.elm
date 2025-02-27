@@ -1,4 +1,4 @@
-module Layout exposing (column, pixelGrid, row)
+module Layout exposing (column, grid, pixelGrid, row)
 
 import Html exposing (Html)
 import Html.Attributes
@@ -45,3 +45,21 @@ pixelDot ( x, y ) =
         , Html.Attributes.style "top" (String.fromInt y ++ "px")
         ]
         []
+
+
+grid : { gap : Int } -> List (List (Html msg)) -> Html msg
+grid { gap } items =
+    let
+        columns =
+            items
+                |> List.head
+                |> Maybe.withDefault []
+                |> List.length
+                |> Debug.log "columns"
+    in
+    Html.div
+        [ Html.Attributes.style "display" "grid"
+        , Html.Attributes.style "grid-template-columns" ("repeat(" ++ String.fromInt columns ++ ", fit-content(100%))")
+        , Html.Attributes.style "gap" (String.fromInt gap ++ "px")
+        ]
+        (List.concat items)
