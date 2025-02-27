@@ -1,1 +1,1 @@
-const app = window.Elm.Main.init();
+const app = window.Elm.Main.init({node: document.getElementById("app")});

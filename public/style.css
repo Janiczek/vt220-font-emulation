@@ -1,4 +1,14 @@
-canvas {
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100dvw;
+    height: 100dvh;
+    background: black;
+    color: grey;
+    font-family: "JetBrains Mono";
+    line-height: 1.5;
+}
+
+body {
+    margin: 16px;
 }

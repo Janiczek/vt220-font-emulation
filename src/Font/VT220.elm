@@ -2,7 +2,7 @@ module Font.VT220 exposing (font0Raw, font1Extended, font2DotStretched)
 
 import Dict exposing (Dict)
 import Font exposing (CharData, CharMap, Font)
-import Font.VT220.Chars exposing (chars)
+import Font.VT220.Chars as Chars
 
 
 font0Raw : Font
@@ -35,26 +35,7 @@ font2DotStretched =
 
 map : CharMap
 map =
-    Dict.fromList
-        [ ( 'A', chars.aUpper )
-        , ( 'B', chars.bUpper )
-        , ( 'C', chars.cUpper )
-        , ( 'D', chars.dUpper )
-
-        --
-        , ( 'b', chars.bLower )
-        , ( 'c', chars.cLower )
-        , ( 'd', chars.dLower )
-
-        --
-        , ( '!', chars.bang )
-
-        --
-        , ( '0', chars.digit0 )
-        , ( '1', chars.digit1 )
-        , ( '2', chars.digit2 )
-        , ( '3', chars.digit3 )
-        ]
+    Chars.map
 
 
 extendRightSide : Int -> CharData -> CharData

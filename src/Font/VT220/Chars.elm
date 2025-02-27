@@ -1,26 +1,13 @@
-module Font.VT220.Chars exposing (chars)
+module Font.VT220.Chars exposing (map)
 
+import Dict exposing (Dict)
 import Font exposing (CharData)
 
 
-chars :
-    { aUpper : CharData
-    , bUpper : CharData
-    , cUpper : CharData
-    , dUpper : CharData
-    , bLower : CharData
-    , cLower : CharData
-    , dLower : CharData
-    , bang : CharData
-    , digit0 : CharData
-    , digit1 : CharData
-    , digit2 : CharData
-    , digit3 : CharData
-    }
-chars =
-    { aUpper =
-        Font.fromPbm
-            """
+map : Dict Char CharData
+map =
+    [ ( 'A'
+      , """
 00000000
 00010000
 00101000
@@ -31,10 +18,10 @@ chars =
 10000010
 00000000
 00000000
-            """
-    , bUpper =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( 'B'
+      , """
 00000000
 11111100
 01000010
@@ -45,10 +32,10 @@ chars =
 11111100
 00000000
 00000000
-            """
-    , cUpper =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( 'C'
+      , """
 00000000
 00111100
 01000010
@@ -59,10 +46,10 @@ chars =
 00111100
 00000000
 00000000
-            """
-    , dUpper =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( 'D'
+      , """
 00000000
 11111000
 01000100
@@ -73,10 +60,10 @@ chars =
 11111000
 00000000
 00000000
-            """
-    , bLower =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( 'b'
+      , """
 00000000
 10000000
 10000000
@@ -87,10 +74,10 @@ chars =
 10111100
 00000000
 00000000
-            """
-    , cLower =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( 'c'
+      , """
 00000000
 00000000
 00000000
@@ -101,10 +88,10 @@ chars =
 01111110
 00000000
 00000000
-            """
-    , dLower =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( 'd'
+      , """
 00000000
 00000010
 00000010
@@ -115,10 +102,12 @@ chars =
 01111010
 00000000
 00000000
-            """
-    , bang =
-        Font.fromPbm
-            """
+        """
+      )
+
+    --
+    , ( '!'
+      , """
 00000000
 00010000
 00010000
@@ -129,10 +118,10 @@ chars =
 00010000
 00000000
 00000000
-            """
-    , digit0 =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( '0'
+      , """
 00000000
 00111000
 01000100
@@ -143,10 +132,10 @@ chars =
 00111000
 00000000
 00000000
-            """
-    , digit1 =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( '1'
+      , """
 00000000
 00010000
 00110000
@@ -157,10 +146,10 @@ chars =
 01111100
 00000000
 00000000
-            """
-    , digit2 =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( '2'
+      , """
 00000000
 01111100
 10000010
@@ -171,10 +160,10 @@ chars =
 11111110
 00000000
 00000000
-            """
-    , digit3 =
-        Font.fromPbm
-            """
+        """
+      )
+    , ( '3'
+      , """
 00000000
 11111110
 00000100
@@ -185,5 +174,22 @@ chars =
 01111100
 00000000
 00000000
-            """
-    }
+        """
+      )
+    , ( ' '
+      , """
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+        """
+      )
+    ]
+        |> List.map (\( c, pbm ) -> ( c, Font.fromPbm pbm ))
+        |> Dict.fromList

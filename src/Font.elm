@@ -1,7 +1,10 @@
-module Font exposing (CharData, CharMap, Font, fromPbm, view)
+module Font exposing (CharData, CharMap, Font, fromPbm, view, withScanlines)
 
 import Dict exposing (Dict)
-import Playground as P
+import Html exposing (Attribute, Html)
+import Html.Attributes
+import Layout
+import List.Cartesian
 
 
 {-| Each character value is a set of "lit" (x,y) coordinates
@@ -97,21 +100,49 @@ fromPbm pbm =
             )
 
 
-view : P.Color -> Font -> Char -> P.Shape
-view color font c =
-    case Dict.get c font.charMap of
-        Nothing ->
-            --let
-            --    _ =
-            --        Debug.log "char not in font's char map" c
-            --in
-            P.group []
+view : String -> Int -> Font -> Char -> Html msg
+view color scale font c =
+    Layout.pixelGrid
+        ( font.charWidth * scale
+        , font.charHeight * scale
+        )
+    <|
+        case Dict.get c font.charMap of
+            Nothing ->
+                let
+                    _ =
+                        Debug.log "char not found in font's char map" c
+                in
+                []
 
-        Just charData ->
-            charData
-                |> List.map
-                    (\( x, y ) ->
-                        P.rectangle color 1 1
-                            |> P.move (toFloat x) (toFloat -y)
-                    )
-                |> P.group
+            Just charData ->
+                charData
+                    |> scaleCharData scale
+
+
+scaleCharData : Int -> CharData -> CharData
+scaleCharData scale charData =
+    charData
+        |> List.concatMap
+            (\( x, y ) ->
+                let
+                    startX =
+                        x * scale
+
+                    startY =
+                        y * scale
+                in
+                List.Cartesian.map2 Tuple.pair
+                    (List.range startX (startX + scale - 1))
+                    (List.range startY (startY + scale - 1))
+            )
+
+
+withScanlines : Font -> Font
+withScanlines font =
+    { font
+        | charHeight = 2 * font.charHeight
+        , charMap =
+            font.charMap
+                |> Dict.map (\_ -> List.map (\( x, y ) -> ( x, y * 2 )))
+    }
