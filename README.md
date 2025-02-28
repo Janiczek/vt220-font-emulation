@@ -11,3 +11,4 @@ Based on:
 - [ ] Add the rest of the glyphs
 - [ ] Add a text input
 - [ ] Expose on Github Pages
+- [ ] Add sliders to dial in the various bloom/latency/... parameters
