@@ -3,7 +3,7 @@ module Font exposing
     , CharData
     , CharMap
     , view
-    , AddOpacitiesFn, idealized, withHorizontalSmearing, withVerticalSmearing
+    , PostprocessFn, phosphorLatency, crtBloom
     )
 
 {-|
@@ -12,7 +12,7 @@ module Font exposing
 @docs CharData
 @docs CharMap
 @docs view
-@docs AddOpacitiesFn, idealized, withHorizontalSmearing, withVerticalSmearing
+@docs PostprocessFn, phosphorLatency, crtBloom
 
 -}
 
@@ -119,8 +119,8 @@ fromPbm pbm =
             )
 
 
-view : String -> AddOpacitiesFn -> Font -> Char -> Html msg
-view color addOpacities font c =
+view : String -> PostprocessFn -> Font -> Char -> Html msg
+view color postprocess font c =
     let
         data =
             case Dict.get c font.charMap of
@@ -138,7 +138,10 @@ view color addOpacities font c =
         ( font.charWidth
         , font.charHeight
         )
-        (data |> addOpacities)
+        (data
+            |> List.map (\( x, y ) -> ( x, y, 1 ))
+            |> postprocess
+        )
 
 
 pixelGrid : ( Int, Int ) -> List ( Int, Int, Float ) -> Html msg
@@ -166,27 +169,37 @@ pixelDot ( x, y, opacity ) =
         []
 
 
-type alias AddOpacitiesFn =
-    List ( Int, Int ) -> List ( Int, Int, Float )
+type alias PostprocessFn =
+    List ( Int, Int, Float ) -> List ( Int, Int, Float )
 
 
-idealized : AddOpacitiesFn
+{-| Assuming the opacity of the input pixels is always 1
+-}
+idealized : PostprocessFn
 idealized =
-    List.map (\( x, y ) -> ( x, y, 1 ))
+    identity
 
 
-withHorizontalSmearing : AddOpacitiesFn
-withHorizontalSmearing =
+{-| Assuming the opacity of the input pixels is always 1.
+
+This adds horizontal "smearing":
+
+  - the first pixel of a consecutive run is a bit
+  - all other pixels of a consecutive run are full brightness
+  - the pixel right after the last pixel of a consecutive run is still a bit bright
+
+-}
+phosphorLatency : PostprocessFn
+phosphorLatency =
     let
-        getY ( _, y ) =
+        getY ( _, y, _ ) =
             y
 
-        getX ( x, _ ) =
+        getX ( x, _, _ ) =
             x
 
         firstOpacity : Float
         firstOpacity =
-            -- dimmer alternative: 157 / 243
             169 / 255
 
         fullOpacity : Float
@@ -195,21 +208,20 @@ withHorizontalSmearing =
 
         afterLastOpacity : Float
         afterLastOpacity =
-            -- dimmer alternative: 70 / 243
             82 / 255
     in
     \pixels ->
         pixels
             |> List.Extra.gatherEqualsBy getY
             |> List.concatMap
-                (\( fstXY, restOfXYs ) ->
+                (\( fstInRow, restInRow ) ->
                     let
                         y =
-                            getY fstXY
+                            getY fstInRow
 
                         allColsInRow : List Int
                         allColsInRow =
-                            (fstXY :: restOfXYs)
+                            (fstInRow :: restInRow)
                                 |> List.map getX
                                 |> List.sort
 
@@ -261,7 +273,24 @@ withHorizontalSmearing =
                                     , [ point afterLastOpacity (last + 1) ]
                                     ]
                             )
+                        -- Make sure we clamp to 1 on any given pixel
+                        |> List.foldl
+                            (\( x_, y_, opacity ) ->
+                                Dict.update ( x_, y_ )
+                                    (\maybeOpacity ->
+                                        case maybeOpacity of
+                                            Nothing ->
+                                                Just opacity
+
+                                            Just currentOpacity ->
+                                                Just (max 1 (currentOpacity + opacity))
+                                    )
+                            )
+                            Dict.empty
+                        |> Dict.toList
+                        |> List.map (\( ( x_, y_ ), opacity ) -> ( x_, y_, opacity ))
                 )
+            |> Debug.log "crt latency"
 
 
 toNonemptyList : List a -> ( a, List a )
@@ -274,7 +303,45 @@ toNonemptyList xs =
             ( x, xs_ )
 
 
-withVerticalSmearing : AddOpacitiesFn
-withVerticalSmearing =
+{-| Blom: each lit pixel will add x% of its light (is it linear?) to
+the pixel below it.
+
+TODO: should it also bleed above it? To the sides? All around?
+
+based on VTterm-vt100-charwidths.png:
+
+    F  S+ A           F  = first pixel (warming up)
+    86 0 173          S+ = second+ pixel (full brightness)
+    231 218 242       A  = after pixel (cooling down)
+
+    a) where numbers go 0..243
+    b) where numbers go 0..255
+
+    157     243    70
+    12      25     1
+    ---------------------
+    0.0764  0.1029 0.0124
+
+    169     255    82
+    24      37     13
+    ---------------------
+    0.1420  0.1451 0.1585
+
+    I'm making it be 0.1451 everywhere...
+
+-}
+crtBloom : PostprocessFn
+crtBloom =
     \pixels ->
-        Debug.todo "vertical smearing"
+        let
+            bleedBelow =
+                37 / 255
+
+            bloom : ( Int, Int, Float ) -> List ( Int, Int, Float )
+            bloom ( x, y, opacity ) =
+                [ ( x, y, opacity )
+                , ( x, y + 1, opacity * bleedBelow )
+                ]
+        in
+        pixels
+            |> List.concatMap bloom
