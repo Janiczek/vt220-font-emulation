@@ -233,26 +233,9 @@ phosphorLatency =
                         -}
                         consecutiveRuns : List (List Int)
                         consecutiveRuns =
-                            let
-                                go : List Int -> Int -> List Int -> List (List Int) -> List (List Int)
-                                go currentRun currentRight todos acc =
-                                    case todos of
-                                        [] ->
-                                            List.reverse (currentRight :: currentRun) :: acc
-
-                                        next :: restOfTodos ->
-                                            if next == currentRight + 1 then
-                                                go (currentRight :: currentRun) next restOfTodos acc
-
-                                            else
-                                                go [] next restOfTodos (List.reverse (currentRight :: currentRun) :: acc)
-                            in
-                            case allColsInRow of
-                                [] ->
-                                    []
-
-                                col :: cols ->
-                                    go [] col cols []
+                            allColsInRow
+                                |> List.Extra.groupWhile (\a b -> b == a + 1)
+                                |> List.map List.Extra.cons
 
                         point : Float -> Int -> ( Int, Int, Float )
                         point opacity x =
