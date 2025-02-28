@@ -135,6 +135,7 @@ view color postprocess font c =
                     charData
     in
     pixelGrid
+        color
         ( font.charWidth
         , font.charHeight
         )
@@ -144,24 +145,24 @@ view color postprocess font c =
         )
 
 
-pixelGrid : ( Int, Int ) -> List ( Int, Int, Float ) -> Html msg
-pixelGrid ( width, height ) pixels =
+pixelGrid : String -> ( Int, Int ) -> List ( Int, Int, Float ) -> Html msg
+pixelGrid color ( width, height ) pixels =
     Html.div
         [ Html.Attributes.style "position" "relative"
         , Html.Attributes.style "width" (String.fromInt width ++ "px")
         , Html.Attributes.style "height" (String.fromInt height ++ "px")
         , Html.Attributes.style "overflow" "visible"
         ]
-        (List.map pixelDot pixels)
+        (List.map (pixelDot color) pixels)
 
 
-pixelDot : ( Int, Int, Float ) -> Html msg
-pixelDot ( x, y, opacity ) =
+pixelDot : String -> ( Int, Int, Float ) -> Html msg
+pixelDot color ( x, y, opacity ) =
     Html.div
         [ Html.Attributes.style "position" "absolute"
         , Html.Attributes.style "width" "1px"
         , Html.Attributes.style "height" "1px"
-        , Html.Attributes.style "background-color" "white"
+        , Html.Attributes.style "background-color" color
         , Html.Attributes.style "left" (String.fromInt x ++ "px")
         , Html.Attributes.style "top" (String.fromInt y ++ "px")
         , Html.Attributes.style "opacity" (String.fromFloat opacity)
@@ -273,24 +274,8 @@ phosphorLatency =
                                     , [ point afterLastOpacity (last + 1) ]
                                     ]
                             )
-                        -- Make sure we clamp to 1 on any given pixel
-                        |> List.foldl
-                            (\( x_, y_, opacity ) ->
-                                Dict.update ( x_, y_ )
-                                    (\maybeOpacity ->
-                                        case maybeOpacity of
-                                            Nothing ->
-                                                Just opacity
-
-                                            Just currentOpacity ->
-                                                Just (min 1 (currentOpacity + opacity))
-                                    )
-                            )
-                            Dict.empty
-                        |> Dict.toList
-                        |> List.map (\( ( x_, y_ ), opacity ) -> ( x_, y_, opacity ))
                 )
-            |> Debug.log "crt latency"
+            |> sumCollidingXYs
 
 
 toNonemptyList : List a -> ( a, List a )
@@ -303,45 +288,59 @@ toNonemptyList xs =
             ( x, xs_ )
 
 
-{-| Blom: each lit pixel will add x% of its light (is it linear?) to
-the pixel below it.
-
-TODO: should it also bleed above it? To the sides? All around?
-
-based on VTterm-vt100-charwidths.png:
-
-    F  S+ A           F  = first pixel (warming up)
-    86 0 173          S+ = second+ pixel (full brightness)
-    231 218 242       A  = after pixel (cooling down)
-
-    a) where numbers go 0..243
-    b) where numbers go 0..255
-
-    157     243    70
-    12      25     1
-    ---------------------
-    0.0764  0.1029 0.0124
-
-    169     255    82
-    24      37     13
-    ---------------------
-    0.1420  0.1451 0.1585
-
-    I'm making it be 0.1451 everywhere...
-
+{-| Bloom: each lit pixel will add x% of its light (is it linear?) to
+its neighbours.
 -}
 crtBloom : PostprocessFn
 crtBloom =
     \pixels ->
         let
-            bleedBelow =
+            bloomDiagonal =
+                6 / 255
+
+            bloomOrthogonal =
                 37 / 255
 
             bloom : ( Int, Int, Float ) -> List ( Int, Int, Float )
             bloom ( x, y, opacity ) =
-                [ ( x, y, opacity )
-                , ( x, y + 1, opacity * bleedBelow )
+                [ ( -1, -1, bloomDiagonal )
+                , ( -1, 0, bloomOrthogonal )
+                , ( -1, 1, bloomDiagonal )
+                , ( 0, -1, bloomOrthogonal )
+                , ( 0, 0, 1 )
+                , ( 0, 1, bloomOrthogonal )
+                , ( 1, -1, bloomDiagonal )
+                , ( 1, 0, bloomOrthogonal )
+                , ( 1, 1, bloomDiagonal )
                 ]
+                    |> List.map (\( dx, dy, k ) -> ( x + dx, y + dy, opacity * k ))
         in
         pixels
             |> List.concatMap bloom
+            |> sumCollidingXYs
+
+
+{-| We're merging cells occupying the same space, so that later postprocessing
+doesn't make things >100%.
+
+For that reason we're also clamping them to 1.
+
+-}
+sumCollidingXYs : List ( Int, Int, Float ) -> List ( Int, Int, Float )
+sumCollidingXYs cells =
+    cells
+        |> List.foldl
+            (\( x_, y_, opacity ) ->
+                Dict.update ( x_, y_ )
+                    (\maybeOpacity ->
+                        case maybeOpacity of
+                            Nothing ->
+                                Just opacity
+
+                            Just currentOpacity ->
+                                Just (min 1 (currentOpacity + opacity))
+                    )
+            )
+            Dict.empty
+        |> Dict.toList
+        |> List.map (\( ( x_, y_ ), opacity ) -> ( x_, y_, opacity ))
