@@ -30,6 +30,16 @@ import Layout
    a) where numbers go 0..243
    b) where numbers go 0..255
    c) where numbers go 0..255 (but change the bottom right number to 255)
+
+   157 243 70     0.646 1.000 0.288
+   12  25  0      0.049 0.103 0.000
+
+   169 255 82     0.663 1.000 0.322
+   24  37  12     0.094 0.145 0.047
+
+   169 255 82     0.663 1.000 0.322
+   24  37  0      0.094 0.145 0.000
+
 -}
 
 
@@ -41,34 +51,32 @@ chars =
 
 main : Html msg
 main =
-    Layout.grid { gap = 8 }
-        [ section Font.VT220.font.singleWidthRaw "original (as in ROM)"
-        , section Font.VT220.font.singleWidthExtended "right-extended"
-        , section Font.VT220.font.singleWidthDotStretched "dot-stretched"
-        , section (Font.VT220.font.singleWidthRaw |> Font.withScanlines) "original with scanlines"
-        , section (Font.VT220.font.singleWidthExtended |> Font.withScanlines) "right-extended with scanlines"
-        , section (Font.VT220.font.singleWidthDotStretched |> Font.withScanlines) "dot-stretched with scanlines"
-        , section Font.VT220.font.doubleWidthRaw "double-width"
-        , section Font.VT220.font.doubleWidthExtended "double-width right-extended"
-        , section Font.VT220.font.doubleWidthDotStretched "double-width dot-stretched"
-        , section (Font.VT220.font.doubleWidthRaw |> Font.withScanlines) "double-width with scanlines"
-        , section (Font.VT220.font.doubleWidthExtended |> Font.withScanlines) "double-width right-extended with scanlines"
-        , section (Font.VT220.font.doubleWidthDotStretched |> Font.withScanlines) "double-width dot-stretched with scanlines"
+    Layout.grid { gapX = 16, gapY = 4 }
+        -- single-width
+        [ section Font.idealized Font.VT220.font.singleWidthRaw "original (as in ROM)"
+        , section Font.idealized Font.VT220.font.singleWidthExtended "+ right-extension"
+        , section Font.idealized Font.VT220.font.singleWidthDotStretched "+ dot stretching"
+        , section Font.idealized Font.VT220.font.singleWidthScanlines "+ scanlines"
+        , section Font.withHorizontalSmearing Font.VT220.font.singleWidthScanlines "> CRT horiz. smearing"
+
+        -- double-width
+        , section Font.idealized Font.VT220.font.doubleWidthRaw "original + double-width"
+        , section Font.idealized Font.VT220.font.doubleWidthExtended "+ right-extension"
+        , section Font.idealized Font.VT220.font.doubleWidthDotStretched "+ dot stretching"
+        , section Font.idealized Font.VT220.font.doubleWidthScanlines "+ scanlines"
+        , section Font.withHorizontalSmearing Font.VT220.font.doubleWidthScanlines "> CRT horiz. smearing"
         ]
 
 
-section : Font -> String -> List (Html msg)
-section font label =
+section : (List ( Int, Int ) -> List ( Int, Int, Float )) -> Font -> String -> List (Html msg)
+section addOpacities font label =
     [ Html.span [] [ Html.text label ]
-    , Layout.column { gap = 0 }
-        [ viewWith 1 font
-        , viewWith 2 font
-        ]
+    , viewWith addOpacities font
     ]
 
 
-viewWith : Int -> Font -> Html msg
-viewWith scale usedFont =
+viewWith : (List ( Int, Int ) -> List ( Int, Int, Float )) -> Font -> Html msg
+viewWith addOpacities usedFont =
     chars
-        |> List.map (Font.view "white" scale usedFont)
+        |> List.map (Font.view "white" addOpacities usedFont)
         |> Layout.row { gap = 0 }

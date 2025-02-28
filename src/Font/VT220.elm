@@ -25,6 +25,8 @@ font :
     , doubleWidthExtended : Font
     , singleWidthDotStretched : Font
     , doubleWidthDotStretched : Font
+    , singleWidthScanlines : Font
+    , doubleWidthScanlines : Font
     }
 font =
     { singleWidthRaw = raw
@@ -33,6 +35,8 @@ font =
     , doubleWidthExtended = raw |> doubleWidth |> extendRightSide
     , singleWidthDotStretched = raw |> extendRightSide |> dotStretch
     , doubleWidthDotStretched = raw |> doubleWidth |> extendRightSide |> dotStretch
+    , singleWidthScanlines = raw |> extendRightSide |> dotStretch |> verticallyDouble
+    , doubleWidthScanlines = raw |> doubleWidth |> extendRightSide |> dotStretch |> verticallyDouble
     }
 
 
@@ -101,3 +105,13 @@ dotStretchCharData charData =
                 , ( x + 1, y )
                 ]
             )
+
+
+verticallyDouble : Font -> Font
+verticallyDouble f =
+    { f
+        | charHeight = f.charHeight * 2
+        , charMap =
+            f.charMap
+                |> Dict.map (\_ -> List.map (\( x, y ) -> ( x, y * 2 )))
+    }

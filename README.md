@@ -1,4 +1,4 @@
-[![Screenshot](https://github.com/Janiczek/vt220-font-emulation/raw/main/screenshot.png)](https://github.com/Janiczek/vt220-font-emulation/raw/main/screenshot.png)
+[![Screenshot](https://github.com/Janiczek/vt220-font-emulation/raw/main/screenshot_horizsmear.png)](https://github.com/Janiczek/vt220-font-emulation/raw/main/screenshot_horizsmear.png)
 
 Based on:
 
