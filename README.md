@@ -1,4 +1,4 @@
-[![Screenshot](https://github.com/Janiczek/vt220-font-emulation/raw/main/screenshot_colors.png)](https://github.com/Janiczek/vt220-font-emulation/raw/main/screenshot_colors.png)
+[![Screenshot](https://github.com/Janiczek/vt220-font-emulation/raw/main/screenshot_knobs.png)](https://github.com/Janiczek/vt220-font-emulation/raw/main/screenshot_knobs.png)
 
 Based on:
 
@@ -9,6 +9,4 @@ Based on:
 ## TODO:
 
 - [ ] Add the rest of the glyphs
-- [ ] Add a text input
 - [ ] Expose on Github Pages
-- [ ] Add sliders to dial in the various bloom/latency/... parameters
