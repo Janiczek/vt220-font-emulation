@@ -283,7 +283,7 @@ phosphorLatency =
                                                 Just opacity
 
                                             Just currentOpacity ->
-                                                Just (max 1 (currentOpacity + opacity))
+                                                Just (min 1 (currentOpacity + opacity))
                                     )
                             )
                             Dict.empty
