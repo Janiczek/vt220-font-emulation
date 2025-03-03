@@ -9,4 +9,3 @@ Based on:
 ## TODO:
 
 - [ ] Add the rest of the glyphs
-- [ ] Expose on Github Pages
