@@ -71,7 +71,7 @@ bloomToString b =
 
 init : Config
 init =
-    { scale = 1
+    { scale = 2
     , text = "ABCD Abcd! 0123"
 
     --
